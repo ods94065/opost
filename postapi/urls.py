@@ -3,7 +3,7 @@ from postapi import views
 from rest_framework.urlpatterns import format_suffix_patterns
 
 urlpatterns = patterns('postapi.views',
-    url(r'^$', 'api_root'),
+    url(r'^$', 'api_root', name='postapi-index'),
     url(r'^boxes$', views.BoxList.as_view(), name='box-list'),
     url(r'^boxes/(?P<name>[0-9a-zA-Z-_]+)$', views.BoxDetail.as_view(), name='box-detail'),
     url(r'^posts$', views.PostList.as_view(), name='post-list'),
@@ -23,7 +23,3 @@ urlpatterns = patterns('postapi.views',
 )
 
 urlpatterns = format_suffix_patterns(urlpatterns)
-
-urlpatterns += patterns('',
-    url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework'))
-)

@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% load postweb_extras %}
+
+{% block title %}
+Opost - Compose Message
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>Compose a Message</h1>
+</div>
+
+{# FIXME: Redo all this with forms and widget objects. It's done manually for now #}
+{# to make sure the Bootstrap formatting comes out correctly. #}
+<form method="POST" id="compose-form" action="{% url 'postweb:compose' %}" role="form">
+  {% for err in form.non_field_errors %}
+  <div class="alert alert-error">{{ err }}</div>
+  {% endfor %}
+  <div class="form-group">
+    {% for err in form.send_to.errors %}
+    <div class="alert alert-error">{{ err }}</div>
+    {% endfor %}
+    <label for="send_to">To</label>
+    
+    <input type="text" name="send_to" class="form-control" placeholder="Mailboxes"
+	   {% if form.send.value %}value="{{ form.send.value }}"{% endif %} />
+  </div>
+  <div class="form-group">
+    {% for err in form.subject.errors %}
+    <div class="alert alert-error">{{ err }}</div>
+    {% endfor %}
+    <label for="subject">Subject</label>
+    <input type="text" name="subject" class="form-control" placeholder="Subject"
+	   {% if form.send.value %}value="{{ form.subject.value }}"{% endif %} />
+  
+  </div>
+  <div class="form-group">
+    {% for err in form.body.errors %}
+    <div class="alert alert-error">{{ err }}</div>
+    {% endfor %}
+    <label for="body">Body</label>
+    <textarea name="body" id="message-body" rows="10" class="form-control" placeholder="Markdown text">{% if form.body.value %}{{ form.body.value }}{% endif %}</textarea>    
+  </div>
+  <div class="btn-group">
+    <button type="submit" name="action" value="cancel" class="btn btn-default">Discard</button>
+    <button type="submit" name="action" value="create" class="btn btn-primary">Send</button>
+  </div>
+  {% csrf_token %}
+</form>
+{% endblock %}

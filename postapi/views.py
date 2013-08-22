@@ -145,7 +145,7 @@ def deliver(request, format=None):
 
     # Create the post.
     data = serializer.object
-    post = Post(sender=request.user, body=data['body'])
+    post = Post(sender=request.user, subject=data['subject'], body=data['body'])
     # content_type is optional. Only set it if it was specified.
     # Otherwise, let the model choose a default.
     if 'content_type' in data:

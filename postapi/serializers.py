@@ -28,6 +28,7 @@ class PostSerializer(serializers.HyperlinkedModelSerializer):
 
 class DeliveredPostSerializer(serializers.HyperlinkedModelSerializer):
     '''Translates between the DeliveredPost model and multiple serialized API document formats.'''
+    id = serializers.Field(source='id')
     box = serializers.HyperlinkedRelatedField(view_name="box-detail", lookup_field='name')
     post = serializers.HyperlinkedRelatedField(view_name="post-detail")
     delivered = serializers.Field(source='created')
@@ -43,7 +44,7 @@ class DeliveredPostSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = DeliveredPost
-        fields = ('url', 'box', 'post', 'created', 'delivered', 'is_read', 'sender', 'subject')
+        fields = ('id', 'url', 'box', 'post', 'created', 'delivered', 'is_read', 'sender', 'subject')
 
 class SubscriptionSerializer(serializers.HyperlinkedModelSerializer):
     '''Translates between the Subscription model and multiple serialized API document formats.'''

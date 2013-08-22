@@ -62,6 +62,7 @@ STATIC_ROOT = 'staticfiles'
 
 # URL prefix for static files.
 # Example: "http://example.com/static/", "http://static.example.com/"
+# NOTE: We use the application name because this is serving our whole front-end!
 STATIC_URL = '/static/'
 
 # Additional locations of static files
@@ -117,7 +118,10 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'django.contrib.admin',
     'django.contrib.admindocs',
+    'django.contrib.markup',
+    'django_extensions',
     'postapi',
+    'postweb',
     'rest_framework',
 )
 
@@ -139,14 +143,28 @@ LOGGING = {
             'level': 'ERROR',
             'filters': ['require_debug_false'],
             'class': 'django.utils.log.AdminEmailHandler'
+        },
+        'console': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
         }
     },
     'loggers': {
         'django.request': {
-            'handlers': ['mail_admins'],
+            'handlers': ['mail_admins', 'console'],
             'level': 'ERROR',
             'propagate': True,
         },
+        'postweb.services': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+        'postweb.views': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+            'propagate': True,
+        }            
     }
 }
 
@@ -166,3 +184,14 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.IsAuthenticatedOrReadOnly'
     ]        
 }
+
+LOGIN_REDIRECT_URL = '/'
+LOGIN_URL = '/web/login'
+SERVICES = {
+    'postapi': {
+        'endpoint': 'http://localhost:5100/postapi/',
+        'user': 'udapost',
+        'password': 'admin123'
+    }
+}
+
