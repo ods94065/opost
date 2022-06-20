@@ -1,10 +1,10 @@
-# Django settings for opost project.
+"""Django settings for the opost project."""
 import environ
 import os
+from pathlib import Path
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-
-environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
+BASE_DIR = Path(__file__).resolve().parent.parent
+environ.Env.read_env(BASE_DIR / ".env")
 env = environ.Env(
     DEBUG=(bool, False),
     TIME_ZONE=(str, "UTC"),
@@ -15,118 +15,84 @@ env = environ.Env(
 
 SECRET_KEY = env("SECRET_KEY")
 DEBUG = env("DEBUG")
-TEMPLATE_DEBUG = DEBUG
-
-# Hosts/domain names that are valid for this site; required if DEBUG is False
-# See https://docs.djangoproject.com/en/1.5/ref/settings/#allowed-hosts
 ALLOWED_HOSTS = env("ALLOWED_HOSTS")
 
-INSTALLED_APPS = (
-    "django.contrib.auth",
-    "django.contrib.contenttypes",
-    "django.contrib.sessions",
-    "django.contrib.sites",
-    "django.contrib.messages",
-    "django.contrib.staticfiles",
-    "django.contrib.admin",
-    "django.contrib.admindocs",
-    "django_extensions",
-    "postapi",
-    "postweb",
-    "rest_framework",
-)
+INSTALLED_APPS = [
+    "django.contrib.admin",  # admin UI
+    "django.contrib.admindocs",  # makes model documentation available through admin UI
+    "django.contrib.auth",  # basic authentication pages/middleware/back end
+    "django.contrib.contenttypes",  # support for generic model references; used e.g. by admin and auth
+    "django.contrib.sessions",  # provides session middleware and back-end support
+    "django.contrib.messages",  # implements a flash message system
+    "django.contrib.sites",  # for domain name awareness and full URLs
+    "django.contrib.staticfiles",  # collects and serves static assets stored throughout the project
+    "django_extensions",  # extra command-line plugins and features
+    "rest_framework",  # Django REST framework tools
+]
 
-MIDDLEWARE_CLASSES = (
-    "django.middleware.common.CommonMiddleware",
-    "django.contrib.sessions.middleware.SessionMiddleware",
-    "django.middleware.csrf.CsrfViewMiddleware",
-    "django.contrib.auth.middleware.AuthenticationMiddleware",
-    "django.contrib.messages.middleware.MessageMiddleware",
-    # Uncomment the next line for simple clickjacking protection:
-    # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
-)
+INSTALLED_APPS += [
+    "postapi",  # opost API layer
+    "postweb",  # opost web front-end
+]
+
+MIDDLEWARE = [
+    "django.middleware.security.SecurityMiddleware",  # Various request validators
+    "django.contrib.sessions.middleware.SessionMiddleware",  # Creates and loads session state as needed
+    "django.middleware.common.CommonMiddleware",  # Tweaks for perfectionists
+    "django.middleware.csrf.CsrfViewMiddleware",  # CSRF protection
+    "django.contrib.auth.middleware.AuthenticationMiddleware",  # Authentication checks
+    "django.contrib.messages.middleware.MessageMiddleware",  # Tracks the display/dismiss state of messages
+    "django.middleware.clickjacking.XFrameOptionsMiddleware",  # Use X-Frame-Options to avoid clickjacking
+]
 
 ROOT_URLCONF = "opost.urls"
 
-# List of callables that know how to import templates from various sources.
-TEMPLATE_LOADERS = (
-    "django.template.loaders.filesystem.Loader",
-    "django.template.loaders.app_directories.Loader",
-    #     'django.template.loaders.eggs.Loader',
-)
+TEMPLATES = [
+    {
+        "BACKEND": "django.template.backends.django.DjangoTemplates",
+        "DIRS": [],
+        "APP_DIRS": True,
+        "OPTIONS": {
+            "context_processors": [
+                "django.template.context_processors.debug",  # adds debug setting(s) to context
+                "django.template.context_processors.request",  # adds request to context
+                "django.contrib.auth.context_processors.auth",  # adds user & perms to context
+                "django.contrib.messages.context_processors.messages",  # adds messages to context
+            ],
+        },
+    },
+]
 
-TEMPLATE_DIRS = (
-    # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
-    # Always use forward slashes, even on Windows.
-    # Don't forget to use absolute paths, not relative paths.
-)
-
-# Python dotted path to the WSGI application used by Django's runserver.
 WSGI_APPLICATION = "opost.wsgi.application"
 
 DATABASES = {"default": env.db_url()}
 
-# Language code for this installation. All choices can be found here:
-# http://www.i18nguy.com/unicode/language-identifiers.html
+_PASSWORD_VALIDATORS = [
+    "UserAttributeSimilarity",
+    "MinimumLength",
+    "CommonPassword",
+    "NumericPassword",
+]
+AUTH_PASSWORD_VALIDATORS = [
+    {"NAME": f"django.contrib.auth.password_validation.{v}Validator"}
+    for v in _PASSWORD_VALIDATORS
+]
+
 LANGUAGE_CODE = env("LANGUAGE_CODE")
-
-# Local time zone for this installation. Choices can be found here:
-# http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
-# although not all choices may be available on all operating systems.
-# In a Windows environment this must be set to your system time zone.
 TIME_ZONE = env("TIME_ZONE")
+USE_TZ = True  # all Django-internal datetimes will be tz-aware
 
-# If you set this to False, Django will make some optimizations so as not
-# to load the internationalization machinery.
-USE_I18N = True
-
-# If you set this to False, Django will not format dates, numbers and
-# calendars according to the current locale.
-USE_L10N = True
-
-# If you set this to False, Django will not use timezone-aware datetimes.
-USE_TZ = True
-
-# Absolute filesystem path to the directory that will hold user-uploaded files.
-# Example: "/var/www/example.com/media/"
-MEDIA_ROOT = ""
-
-# URL that handles the media served from MEDIA_ROOT. Make sure to use a
-# trailing slash.
-# Examples: "http://example.com/media/", "http://media.example.com/"
-MEDIA_URL = ""
-
-# Absolute path to the directory static files should be collected to.
-# Don't put anything in this directory yourself; store your static files
-# in apps' "static/" subdirectories and in STATICFILES_DIRS.
-# Example: "/var/www/example.com/static/"
 STATIC_ROOT = env("STATIC_ROOT")
+STATIC_URL = "static/"
 
-# URL prefix for static files.
-# Example: "http://example.com/static/", "http://static.example.com/"
-# NOTE: We use the application name because this is serving our whole front-end!
-STATIC_URL = "/static/"
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-# Additional locations of static files
-STATICFILES_DIRS = (os.path.join(BASE_DIR, "static"),)
-
-# List of finder classes that know how to find static files in
-# various locations.
-STATICFILES_FINDERS = (
-    "django.contrib.staticfiles.finders.FileSystemFinder",
-    "django.contrib.staticfiles.finders.AppDirectoriesFinder",
-    #    'django.contrib.staticfiles.finders.DefaultStorageFinder',
-)
-
-# A sample logging configuration. The only tangible logging
-# performed by this configuration is to send an email to
-# the site admins on every HTTP 500 error when DEBUG=False.
-# See http://docs.djangoproject.com/en/dev/topics/logging for
-# more details on how to customize your logging configuration.
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
-    "filters": {"require_debug_false": {"()": "django.utils.log.RequireDebugFalse"}},
+    "filters": {
+        "require_debug_false": {"()": "django.utils.log.RequireDebugFalse"},
+    },
     "handlers": {
         "mail_admins": {
             "level": "ERROR",
@@ -157,25 +123,21 @@ LOGGING = {
     },
 }
 
-ADMINS = (
-    # ('Your Name', 'your_email@example.com'),
+ADMINS = [
     ("Opost Admin", "ods94043@yahoo.com"),
-)
-
+]
 MANAGERS = ADMINS
 
 LOGIN_REDIRECT_URL = "/"
 LOGIN_URL = "/web/login"
 
-SITE_ID = 1
+SITE_ID = 1  # for sites app
 
-# Honor the 'X-Forwarded-Proto' header for request.is_secure()
+# Requests with this HTTP header/value are considered secure.
+# Assumed to be passed along by a reverse proxy that is handling TLS for us.
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 REST_FRAMEWORK = {
-    # Our API is generally hyperlinked, and most serializers
-    # therefore use this as a base.
-    "DEFAULT_MODEL_SERIALIZER_CLASS": "rest_framework.serializers.HyperlinkedModelSerializer",
     # By default, allow write access for currently logged in users,
     # and read access otherwise. This still allows any logged-in
     # user to edit anything, however, so be careful!
