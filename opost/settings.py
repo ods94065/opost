@@ -118,7 +118,6 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'django.contrib.admin',
     'django.contrib.admindocs',
-    'django.contrib.markup',
     'django_extensions',
     'postapi',
     'postweb',

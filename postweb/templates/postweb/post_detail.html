@@ -1,6 +1,5 @@
 {% extends "base.html" %}
 
-{% load markup %}
 {% load postweb_extras %}
 
 {% block title %}
@@ -21,8 +20,7 @@ Opost - View Message
 <p/>
 <div class="row">
   <div class="col-md-12">
-    {# FIXME: this markdown filter is deprecated; find or create a better replacement #}
-    {{ post.post.body|markdown:"safe" }}
+    {{ post.post.body|markdown_to_safe_html }}
   </div>
 </div>
 
