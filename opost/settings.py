@@ -5,9 +5,15 @@ import os
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
-env = environ.Env()
+env = environ.Env(
+    DEBUG=(bool, False),
+    TIME_ZONE=(str, "UTC"),
+    LANGUAGE_CODE=(str, "en-us"),
+    STATIC_ROOT=(str, "staticfiles"),
+    ALLOWED_HOSTS=([str], []),
+)
 
-DEBUG = True
+DEBUG = env("DEBUG")
 TEMPLATE_DEBUG = DEBUG
 
 ADMINS = (
@@ -23,17 +29,17 @@ DATABASES = {
 
 # Hosts/domain names that are valid for this site; required if DEBUG is False
 # See https://docs.djangoproject.com/en/1.5/ref/settings/#allowed-hosts
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = env("ALLOWED_HOSTS")
 
 # Local time zone for this installation. Choices can be found here:
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
 # although not all choices may be available on all operating systems.
 # In a Windows environment this must be set to your system time zone.
-TIME_ZONE = 'America/Los_Angeles'
+TIME_ZONE = env("TIME_ZONE")
 
 # Language code for this installation. All choices can be found here:
 # http://www.i18nguy.com/unicode/language-identifiers.html
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = env("LANGUAGE_CODE")
 
 SITE_ID = 1
 
@@ -61,7 +67,7 @@ MEDIA_URL = ''
 # Don't put anything in this directory yourself; store your static files
 # in apps' "static/" subdirectories and in STATICFILES_DIRS.
 # Example: "/var/www/example.com/static/"
-STATIC_ROOT = 'staticfiles'
+STATIC_ROOT = env("STATIC_ROOT")
 
 # URL prefix for static files.
 # Example: "http://example.com/static/", "http://static.example.com/"
@@ -82,7 +88,7 @@ STATICFILES_FINDERS = (
 )
 
 # Make this unique, and don't share it with anybody.
-SECRET_KEY = 'omsgfq6n&se=325+rh0_w5s_7gl=-w+zk$jk+gnazpmf0d04ks'
+SECRET_KEY = env("SECRET_KEY")
 
 # List of callables that know how to import templates from various sources.
 TEMPLATE_LOADERS = (
