@@ -18,17 +18,22 @@ class BoxSerializer(serializers.HyperlinkedModelSerializer):
     url = serializers.HyperlinkedIdentityField(
         view_name="box-detail", lookup_field="name"
     )
+    posts = serializers.HyperlinkedRelatedField(
+        many=True, view_name="deliveredpost-detail", read_only=True
+    )
 
     class Meta:
         model = Box
         fields = ("url", "name", "created", "posts")
-        lookup_field = "name"
 
 
 class PostSerializer(serializers.HyperlinkedModelSerializer):
     """Translates between the Post model and multiple serialized API document formats."""
 
-    sender = serializers.Field(source="sender.username")
+    sender = serializers.ReadOnlyField(source="sender.username")
+    delivered_posts = serializers.HyperlinkedRelatedField(
+        view_name="deliveredpost-detail", many=True, read_only=True
+    )
 
     class Meta:
         model = Post
@@ -46,21 +51,31 @@ class PostSerializer(serializers.HyperlinkedModelSerializer):
 class DeliveredPostSerializer(serializers.HyperlinkedModelSerializer):
     """Translates between the DeliveredPost model and multiple serialized API document formats."""
 
-    id = serializers.Field(source="id")
     box = serializers.HyperlinkedRelatedField(
-        view_name="box-detail", lookup_field="name"
+        view_name="box-detail", queryset=Box.objects.all(), lookup_field="name"
     )
-    post = serializers.HyperlinkedRelatedField(view_name="post-detail")
-    delivered = serializers.Field(source="created")
-    sender = serializers.Field(source="post_sender.username")
-    created = serializers.Field(source="post_created")
-    subject = serializers.Field(source="post_subject")
+    post = serializers.HyperlinkedRelatedField(
+        view_name="post-detail", queryset=Post.objects.all()
+    )
+    delivered = serializers.ReadOnlyField(source="created")
+    sender = serializers.ReadOnlyField(source="post_sender.username")
+    created = serializers.ReadOnlyField(source="post_created")
+    subject = serializers.ReadOnlyField(source="post_subject")
 
-    def save_object(self, obj, **kwargs):
+    def update(self, obj, validated_data):
         obj.post_sender = obj.post.sender
         obj.post_created = obj.post.created
         obj.post_subject = obj.post.subject
-        super(DeliveredPostSerializer, self).save_object(obj, **kwargs)
+        return super(DeliveredPostSerializer, self).update(obj, validated_data)
+
+    def create(self, validated_data):
+        post = validated_data.get("post")
+        return DeliveredPost.objects.create(
+            post_sender=post.sender,
+            post_created=post.created,
+            post_subject=post.subject,
+            **validated_data
+        )
 
     class Meta:
         model = DeliveredPost
@@ -81,13 +96,15 @@ class SubscriptionSerializer(serializers.HyperlinkedModelSerializer):
     """Translates between the Subscription model and multiple serialized API document formats."""
 
     source = serializers.HyperlinkedRelatedField(
-        view_name="box-detail", lookup_field="name"
+        view_name="box-detail", queryset=Box.objects.all(), lookup_field="name"
     )
     target = serializers.HyperlinkedRelatedField(
-        view_name="box-detail", lookup_field="name"
+        view_name="box-detail", queryset=Box.objects.all(), lookup_field="name"
     )
     watermark = serializers.HyperlinkedRelatedField(
-        view_name="deliveredpost-detail", required=False
+        view_name="deliveredpost-detail",
+        queryset=DeliveredPost.objects.all(),
+        required=False,
     )
 
     class Meta:
@@ -96,7 +113,7 @@ class SubscriptionSerializer(serializers.HyperlinkedModelSerializer):
         read_only_fields = ("created",)
 
 
-class BoxListField(serializers.WriteableField):
+class BoxListField(serializers.Field):
     """A mapping of list-of-box-resources to list-of-box-names."""
 
     def __init__(self, max_length=None, min_length=None):
@@ -106,10 +123,10 @@ class BoxListField(serializers.WriteableField):
             view_name="box-detail", queryset=Box.objects.all(), lookup_field="name"
         )
 
-    def to_native(self, obj):
-        return [self.converter.to_native(item) for item in obj]
+    def to_internal_value(self, data):
+        return [self.converter.to_internal_value(item) for item in data]
 
-    def from_native(self, data):
+    def to_representation(self, value):
         """Convert from list of box URLs to list of box names.
 
         Like any field, this throws a ValidationError instead of returning values if there are any problems.
@@ -117,9 +134,9 @@ class BoxListField(serializers.WriteableField):
 
         obj = []
         error_messages = []
-        for item in data:
+        for item in value:
             try:
-                obj.append(self.converter.from_native(item))
+                obj.append(self.converter.to_representation(item))
             except ValidationError as err:
                 error_messages.extend(list(err.messages))
 
