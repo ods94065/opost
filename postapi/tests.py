@@ -268,7 +268,7 @@ class BoxDetailTestCase(APITestCase, BoxMixin):
 
         r = self.client.put(papi("boxes", self.name), {"name": "moe"})
         self.assertEqual(r.status_code, 405)
-        r = self.client.patch(papi(f"boxes/{self.name}"), {"name": "moe"})
+        r = self.client.patch(papi("boxes", self.name), {"name": "moe"})
         self.assertEqual(r.status_code, 405)
 
     def test_get_fails_if_not_present(self):
