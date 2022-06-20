@@ -7,6 +7,12 @@ class Box(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     name = models.SlugField(unique=True)
 
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name_plural = "boxes"
+
 
 POST_CONTENT_TYPE_CHOICES = (("text/x-markdown", "Markdown"),)
 
@@ -23,6 +29,17 @@ class Post(models.Model):
         choices=POST_CONTENT_TYPE_CHOICES, default="text/x-markdown", max_length=63
     )
     body = models.TextField()
+
+    @property
+    def subject_short(self):
+        if len(self.subject) > 40:
+            return self.subject[37] + "..."
+        else:
+            return self.subject
+
+    def __str__(self):
+        created_str = self.created.isoformat() if self.created else "???"
+        return f"{self.sender.username} @ {created_str} ({self.subject_short})"
 
     class Meta:
         ordering = ("created",)
@@ -50,6 +67,10 @@ class DeliveredPost(models.Model):
     )
     post_created = models.DateTimeField()
     post_subject = models.CharField(max_length=255)
+
+    def __str__(self):
+        created_str = self.created.isoformat() if self.created else "???"
+        return f"{self.post_sender} \u2192 {self.box.name} @ {created_str}"
 
     class Meta:
         # Make sure each message is delivered to the target box at most once!
