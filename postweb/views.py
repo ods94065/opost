@@ -1,14 +1,14 @@
-from django.http import HttpResponse, Http404
-from django.contrib.auth.decorators import login_required
-from django.contrib import messages
-from django.core.urlresolvers import reverse
-from django.shortcuts import render, redirect
-from django.template import RequestContext
-from services import BoxService, PostService, ServiceError
 import json
 import logging
 import re
+
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from django.urls import reverse
+from django.shortcuts import render, redirect
+
 from postweb.forms import SendMessageForm
+from postweb.services import BoxService, PostService
 import postweb.utils
 
 logger = logging.getLogger(__name__)
