@@ -3,3 +3,5 @@ staticfiles
 *.py[co]
 *~
 #*
+.idea/
+.env
