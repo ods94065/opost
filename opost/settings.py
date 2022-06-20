@@ -1,8 +1,11 @@
 # Django settings for opost project.
+import environ
 import os
-import dj_database_url
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
+env = environ.Env()
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
@@ -15,7 +18,7 @@ ADMINS = (
 MANAGERS = ADMINS
 
 DATABASES = {
-    'default': dj_database_url.config()
+    'default': env.db_url()
 }
 
 # Hosts/domain names that are valid for this site; required if DEBUG is False
