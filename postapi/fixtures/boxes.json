@@ -1,0 +1,18 @@
+[
+    {
+        "model": "postapi.box",
+        "pk": 1,
+        "fields": {
+            "created": "2022-06-20T06:27:17.858Z",
+            "name": "udapost"
+        }
+    },
+    {
+        "model": "postapi.box",
+        "pk": 2,
+        "fields": {
+            "created": "2022-06-20T06:27:39.316Z",
+            "name": "test"
+        }
+    }
+]

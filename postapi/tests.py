@@ -19,7 +19,7 @@ def papi(resource, key=None):
 def basic_test_auth():
     """Returns the test authentication header value for basic HTTP authentication using the test user."""
 
-    credentials = base64.b64encode(b"test:testy123").strip().decode("utf-8")
+    credentials = base64.b64encode(b"test:deadbeef").strip().decode('utf-8')
     auth_string = f"Basic {credentials}"
     return auth_string
 
@@ -94,7 +94,7 @@ class JSONClient(django.test.client.Client):
 class AuthAPITestCase(django.test.TestCase):
     """Tests that exercise the API's support for authentiaction."""
 
-    fixtures = ["testuser.json"]
+    fixtures = ["auth.json"]
 
     def test_get_allowed(self):
         """Most GET requests are allowed when authenticated."""
@@ -153,7 +153,7 @@ class AuthAPITestCase(django.test.TestCase):
     def test_session_auth(self):
         """Django session authentication works using test user on a sample post."""
 
-        self.client.login(username="test", password="testy123")
+        self.client.login(username="test", password="deadbeef")
         r = self.client.post(
             papi("boxes"), json.dumps({"name": "foo"}), content_type="application/json"
         )
@@ -164,12 +164,12 @@ class AuthAPITestCase(django.test.TestCase):
 class APITestCase(django.test.TestCase):
     """Tests that ensure the user will be authenticated."""
 
-    fixtures = ["testuser.json"]
+    fixtures = ["auth.json"]
     client_class = JSONClient
 
     def setUp(self):
         self.client.login(
-            username="test", password="testy123"
+            username="test", password="deadbeef"
         )  # Constructed to match the fixture data!
 
     def tearDown(self):
