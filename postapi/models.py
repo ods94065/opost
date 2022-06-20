@@ -15,7 +15,9 @@ class Post(models.Model):
     """A document to be posted to one or more boxes."""
 
     created = models.DateTimeField(auto_now_add=True)
-    sender = models.ForeignKey("auth.User", related_name="posts")
+    sender = models.ForeignKey(
+        "auth.User", related_name="posts", on_delete=models.CASCADE
+    )
     subject = models.CharField(max_length=255)
     content_type = models.CharField(
         choices=POST_CONTENT_TYPE_CHOICES, default="text/x-markdown", max_length=63
@@ -33,15 +35,19 @@ class DeliveredPost(models.Model):
     the underlying post or other boxes.
     """
 
-    box = models.ForeignKey("Box", related_name="posts")
-    post = models.ForeignKey("Post", related_name="delivered_posts")
+    box = models.ForeignKey("Box", related_name="posts", on_delete=models.CASCADE)
+    post = models.ForeignKey(
+        "Post", related_name="delivered_posts", on_delete=models.CASCADE
+    )
     created = models.DateTimeField(auto_now_add=True)
     is_read = models.BooleanField(default=False)
 
     # These are copied from the underlying post:
     # - post_owner and post_subject allow for quick header retrieval.
     # - post_created allows us to sort the mailbox the way you'd expect.
-    post_sender = models.ForeignKey("auth.User", related_name="+")
+    post_sender = models.ForeignKey(
+        "auth.User", related_name="+", on_delete=models.CASCADE
+    )
     post_created = models.DateTimeField()
     post_subject = models.CharField(max_length=255)
 
@@ -60,10 +66,14 @@ class Subscription(models.Model):
     created = models.DateTimeField(auto_now_add=True)
 
     # The source is the box we're pulling messages from.
-    source = models.ForeignKey("Box", related_name="subscriptions_from")
+    source = models.ForeignKey(
+        "Box", related_name="subscriptions_from", on_delete=models.CASCADE
+    )
 
     # The target is the box we're delivering messages to.
-    target = models.ForeignKey("Box", related_name="subscriptions_to")
+    target = models.ForeignKey(
+        "Box", related_name="subscriptions_to", on_delete=models.CASCADE
+    )
 
     # The watermark tracks either the last message we've pulled from the source,
     # OR, if this is a brand-new subscription, it tracks the last post after
@@ -71,7 +81,13 @@ class Subscription(models.Model):
     # first message delivered to the source box.
     #
     # IMPORTANT: we assume the keys will be monotonically increasing with time!
-    watermark = models.ForeignKey("DeliveredPost", blank=True, null=True)
+    #
+    # FIXME: do better than SET_NULL
+    # Using a SET_NULL constraint here means we restart the subscription
+    # if the latest DeliveredPost associated with the subscription ever gets deleted.
+    watermark = models.ForeignKey(
+        "DeliveredPost", blank=True, null=True, on_delete=models.SET_NULL
+    )
 
     class Meta:
         # Make sure there is at most one subscription between any two boxes!
