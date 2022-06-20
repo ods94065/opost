@@ -46,6 +46,9 @@ MARKDOWN_ATTRS = {
 }
 
 
+PREFERRED_DATE_FORMAT = "%a %b %d %Y %I:%M %p"
+
+
 def service_url(service, path=""):
     """Construct a URL for accessing the named service."""
 
@@ -73,7 +76,7 @@ def represent_date(iso_datetime_str):
     """
 
     dt = dateutil.parser.parse(iso_datetime_str)
-    return dt.strftime("%a %b %d %Y %I:%M %p")
+    return dt.strftime(PREFERRED_DATE_FORMAT)
 
 
 def markdown_to_html(markdown_text):
