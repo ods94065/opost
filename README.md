@@ -194,8 +194,6 @@ The disadvantages of Django are:
   that scaling must either be managed through Python threads or Python
   processes, and accesses are generally serialized.
 
-Hosting is currently being managed through Heroku.
-
 ### API Design
 
 All API calls are implemented under the '/postapi/' URL space. For the
