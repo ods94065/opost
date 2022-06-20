@@ -10,14 +10,14 @@ ARBITRARY_NONEXISTENT_NAME = 'mxyzptlk'
 def papi(resource, key=None):
     '''A simple wrapper to simplify URL typing below.'''
     if key:
-        return '/postapi/%s/%s' % (resource, str(key))
+        return f"/postapi/{resource}/{key}"
     else:
-        return '/postapi/%s' % resource
+        return f"/postapi/{resource}"
 
 def basic_test_auth():
     '''Returns the test authentication header value for basic HTTP authentication using the test user.'''
-    credentials = base64.encodestring('test:testy123').strip()
-    auth_string = 'Basic %s' % credentials
+    credentials = base64.b64encode(b"test:testy123").strip().decode("utf-8")
+    auth_string = f"Basic {credentials}"
     return auth_string
 
 def scrape_pk(url):
@@ -28,7 +28,7 @@ def scrape_pk(url):
     and that it is a whole number.'''
     m = re.search(r'/([0-9]+)$', url)
     if m is None:
-        raise ValueError, "Can't extract primary key from URL: %s" % url
+        raise ValueError(f"Can't extract primary key from URL: {url}")
     return int(m.group(1))
 
 class JSONClient(django.test.client.Client):
@@ -157,7 +157,7 @@ class BoxListTestCase(APITestCase, BoxMixin):
         self.assertEqual(r.status_code, 200)
         self.assertTrue(isinstance(r.json_content, list))
         box_names = [box['name'] for box in r.json_content]
-        self.assertItemsEqual(box_names, ['owen', 'john'])
+        self.assertCountEqual(box_names, ['owen', 'john'])
 
     def test_list_by_name_startswith(self):
         self.create_box('annie')
@@ -167,10 +167,10 @@ class BoxListTestCase(APITestCase, BoxMixin):
         # check the basics
         r = self.client.get(papi('boxes'), {'name_startswith': 'a'})
         self.assertEqual(r.status_code, 200)
-        self.assertItemsEqual([box['name'] for box in r.json_content], ['annie', 'archie', 'armand'])
+        self.assertCountEqual([box['name'] for box in r.json_content], ['annie', 'archie', 'armand'])
         # check case insensitivity
         r = self.client.get(papi('boxes'), {'name_startswith': 'AR'})
-        self.assertItemsEqual([box['name'] for box in r.json_content], ['archie', 'armand'])
+        self.assertCountEqual([box['name'] for box in r.json_content], ['archie', 'armand'])
         # check queries with no results
         r = self.client.get(papi('boxes'), {'name_startswith': 'c'})
         self.assertEqual(r.status_code, 200)
@@ -200,7 +200,7 @@ class BoxDetailTestCase(APITestCase, BoxMixin):
         '''A box's details may not be modified.'''
         r = self.client.put(papi('boxes', self.name), {'name': 'moe'})
         self.assertEqual(r.status_code, 405)
-        r = self.client.patch(papi('boxes/%s' % self.name), {'name': 'moe'})
+        r = self.client.patch(papi(f"boxes/{self.name}"), {'name': 'moe'})
         self.assertEqual(r.status_code, 405)
 
     def test_get_fails_if_not_present(self):
@@ -238,7 +238,7 @@ class PostListTestCase(APITestCase, PostMixin):
         self.assertEqual(r.status_code, 200)
         self.assertTrue(isinstance(r.json_content, list))
         posts = [post['body'] for post in r.json_content]
-        self.assertItemsEqual(posts, ['Hello, there!', 'Hi yourself.'])
+        self.assertCountEqual(posts, ['Hello, there!', 'Hi yourself.'])
 
 class PostDetailTestCase(APITestCase, PostMixin):
     '''Tests for /postapi/posts/<pk>.'''
@@ -326,7 +326,7 @@ class DeliveredPostListTestCase(APITestCase, DeliveredPostMixin):
         self.assertEqual(r.status_code, 200)
         self.assertTrue(isinstance(r.json_content, list))
         posts = [delivered_post['subject'] for delivered_post in r.json_content]
-        self.assertItemsEqual(posts, ['Test', 'Test 2'])
+        self.assertCountEqual(posts, ['Test', 'Test 2'])
 
     def test_list_by_sender(self):
         '''Delivered posts can be filtered by sender.'''
@@ -336,7 +336,7 @@ class DeliveredPostListTestCase(APITestCase, DeliveredPostMixin):
         self.assertEqual(r.status_code, 200)
         self.assertTrue(isinstance(r.json_content, list))
         posts = [delivered_post['subject'] for delivered_post in r.json_content]
-        self.assertItemsEqual(posts, ['Test 2'])
+        self.assertCountEqual(posts, ['Test 2'])
 
 class DeliveredPostDetailTestCase(APITestCase, DeliveredPostMixin):
     '''Tests for /postapi/delivered-posts/<pk>.'''
@@ -432,7 +432,7 @@ class SubscriptionListTestCase(APITestCase, SubscriptionMixin):
         self.assertEqual(r.status_code, 200)
         self.assertTrue(isinstance(r.json_content, list))
         sources = [sub['source'] for sub in r.json_content]
-        self.assertItemsEqual(sources, [data1.source_url, data2.source_url])
+        self.assertCountEqual(sources, [data1.source_url, data2.source_url])
     
     def test_fails_if_delivered_twice(self):
         '''At most one subscription may exist between a given source and target.'''
@@ -512,7 +512,7 @@ class DeliverActionTestCase(APITestCase, BoxMixin):
     
     def test_fails_if_box_not_present(self):
         '''Delivery of a message to a nonexistent box fails.'''
-        r = self.client.post(papi('actions/deliver'), {'to': ['http://localserver/boxes/%s' % ARBITRARY_NONEXISTENT_NAME],
+        r = self.client.post(papi('actions/deliver'), {'to': [f"http://localserver/boxes/{ARBITRARY_NONEXISTENT_NAME}"],
                                                        'subject': 'Test',
                                                        'body': 'Hello, world!'})
         self.assertEqual(r.status_code, 400)

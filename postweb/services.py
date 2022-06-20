@@ -21,7 +21,8 @@ class ServiceResponseError(ServiceError):
         self.response = response
 
     def __str__(self):
-        return "Unknown response error, code %d\n%s" % (self.response.status_code, self.dump_response())
+        response = self.dump_response()
+        return f"Unknown response error, code {self.response.status_code}\n{response}"
 
 class ServiceResponseError(ServiceError):
     '''A general category of errors that have to do with the response we get back from a service.'''
@@ -30,11 +31,13 @@ class ServiceResponseError(ServiceError):
         self.response = response
 
     def dump_response(self):
-        return "%s\n\n%s" % (dump_headers(self.response.headers), self.response.text)
+        headers = dump_headers(self.response.headers)
+        body = self.response.text
+        return f"{headers}\n\n{body}"
 
     def __str__(self):
-        return "Service returned HTTP code %d:\n%s" % (self.response.status_code,
-                                                       self.dump_response())
+        response = self.dump_response()
+        return f"Service returned HTTP code {self.response.status_code}:\n{response}"
 
 class ServiceResponseNotJsonError(ServiceResponseError):
     '''An error when the response we get back does not have JSON content and we are expecting some.'''
@@ -42,8 +45,9 @@ class ServiceResponseNotJsonError(ServiceResponseError):
         super(ServiceResponseNotJsonError, self).__init__(response)
         
     def __str__(self):
-        return "Service response is not JSON (content type is %s):\n%s" % (self.response.headers['content-type'],
-                                                                           self.dump_response())
+        response = self.dump_response()
+        content_type = self.response.head4ers["content-type"]
+        return f"Service response is not JSON (content type is {content_type}):\n{response}"
 
 class Service(object):
     def __init__(self, request):
@@ -73,7 +77,7 @@ class BoxService(Service):
         '''Returns the box with the given name, or None if no such box can be found.
 
         Raises ServiceError if there was an issue with the service.'''
-        logger.info("Fetching box for %s" % name)
+        logger.info("Fetching box for %s", name)
         url = service_url('postapi', 'boxes/%s' % name)
         r = self.http.get(url, headers={'Accept': 'application/json'})
         if r.status_code == 404:
@@ -87,7 +91,7 @@ class BoxService(Service):
         '''Creates a box with the given name.
 
         Raises ServiceError if there was an issue with the service.'''
-        logger.info("Creating box for %s" % name)
+        logger.info("Creating box for %s", name)
         data = { 'name': name }
         url = service_url('boxes')
         r = self.http.post(url, data=json.dumps(data),
@@ -100,7 +104,7 @@ class BoxService(Service):
 
     def sync(self, box_url):
         data = { 'box': box_url }
-        logger.info("Syncing box %s" % box_url)
+        logger.info("Syncing box %s", box_url)
         url = service_url('postapi', 'actions/sync')
         r = self.http.post(url, data=json.dumps(data),
                            headers={'Content-Type': 'application/json',
@@ -110,7 +114,7 @@ class BoxService(Service):
 
 class PostService(Service):
     def get_delivered_post(self, dpost_url):
-        logger.info("Getting post: %s" % dpost_url)
+        logger.info("Getting post: %s", dpost_url)
         r = self.http.get(dpost_url, headers={'Accept': 'application/json'})
 
         if not r.ok:
@@ -119,13 +123,13 @@ class PostService(Service):
         return self.response_to_json(r)
 
     def get_post_detail(self, dpost_pk):
-        logger.info("Viewing post details with delivered post id: %s" % dpost_pk)
-        url = service_url('postapi', 'delivered-posts/%s' % dpost_pk)
+        logger.info("Viewing post details with delivered post id: %s", dpost_pk)
+        url = service_url("postapi", f"delivered-posts/{dpost_pk}")
         r = self.http.get(url, headers={'Accept': 'application/json'})
         if not r.ok:
             raise ServiceResponseError(r)
         dpost = self.response_to_json(r)
-        logger.info("Fetching post body: %s" % dpost['post'])
+        logger.info("Fetching post body: %s", dpost["post"])
         r = self.http.get(dpost['post'], headers={'Accept': 'application/json'})
         if not r.ok:
             raise ServiceResponseError(r)
@@ -133,14 +137,14 @@ class PostService(Service):
         return dpost
 
     def delete_post(self, dpost_pk):
-        logger.info("Deleting delivered post id: %s" % dpost_pk)
-        url = service_url('postapi', 'delivered-posts/%s' % dpost_pk)
+        logger.info("Deleting delivered post id: %s", dpost_pk)
+        url = service_url("postapi", f"delivered-posts/{dpost_pk}")
         r = self.http.delete(url, headers={'Accept': 'application/json'})
         if not r.ok:
             raise ServiceResponseError(r)
 
     def send_post(self, boxes, subject, body):
-        logger.info("Sending message to:\n%s" % '\n'.join(boxes))
+        logger.info("Sending message to:\n%s", "\n".join(boxes))
         url = service_url('postapi', 'actions/deliver')
         data = {'to': boxes, 'subject': subject, 'body': body}
         r = self.http.post(url, data=json.dumps(data),

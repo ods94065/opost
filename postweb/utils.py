@@ -53,11 +53,11 @@ def service_url(service, path=''):
     
     service_def = settings.SERVICES.get(service, None)
     if service_def is None:
-        raise ValueError('No service named %s configured in settings.SERVICES' % service)
+        raise ValueError(f"No service named {service} configured in settings.SERVICES")
 
     endpoint = service_def.get('endpoint', None)
     if endpoint is None:
-        raise ValueError('No endpoint configured in settings.SERVICES for %s' % service)
+        raise ValueError(f"No endpoint configured in settings.SERVICES for {service}")
 
     if not endpoint.endswith('/'):
         endpoint = endpoint + '/'

@@ -76,7 +76,7 @@ class BoxListField(serializers.WritableField):
         for item in data:
             try:
                 obj.append(self.converter.from_native(item))
-            except ValidationError, err:
+            except ValidationError as err:
                 error_messages.extend(list(err.messages))
 
         if len(error_messages) > 0:

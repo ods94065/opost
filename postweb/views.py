@@ -33,8 +33,8 @@ def index(request):
     box = box_svc.get_box(username)
     box_created = False
     if not box:
-        box = box_svc.create_box(username)        
-        messages.info(request, 'Created a box for %s.' % username)
+        box = box_svc.create_box(username)
+        messages.info(request, f"Created a box for {username}.")
 
     box_data = pprint_json(box)
     logger.debug(box_data)
