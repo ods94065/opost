@@ -92,7 +92,7 @@ class JSONClient(django.test.client.Client):
 
 
 class AuthAPITestCase(django.test.TestCase):
-    """Tests that exercise the API's support for authentiaction."""
+    """Tests that exercise the API's support for authentication."""
 
     fixtures = ["auth.json"]
 
