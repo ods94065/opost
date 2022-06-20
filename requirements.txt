@@ -1,3 +1,4 @@
+black==22.3.0
 bleach==5.0.0
 bzr==2.5.1
 dj-static==0.0.5
