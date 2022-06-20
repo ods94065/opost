@@ -61,7 +61,7 @@ class BoxList(generics.ListCreateAPIView):
     def get_queryset(self):
         queryset = Box.objects.all()
         # Query support for autocompletion of box name
-        name_startswith = self.request.QUERY_PARAMS.get("name_startswith", None)
+        name_startswith = self.request.query_params.get("name_startswith", None)
         if name_startswith is not None:
             queryset = queryset.filter(name__istartswith=name_startswith)
         queryset = queryset.order_by("name")
@@ -87,12 +87,12 @@ class PostList(generics.ListCreateAPIView):
 
     serializer_class = PostSerializer
 
-    def pre_save(self, obj):
-        obj.sender = self.request.user
+    def perform_create(self, serializer):
+        serializer.save(sender=self.request.user)
 
     def get_queryset(self):
         queryset = Post.objects.all()
-        form = PostListForm(self.request.QUERY_PARAMS)
+        form = PostListForm(self.request.query_params)
         if form.is_valid():
             kwargs = {}
             for field, query_key in [
@@ -132,7 +132,7 @@ class DeliveredPostList(generics.ListCreateAPIView):
 
     def get_queryset(self):
         queryset = DeliveredPost.objects.all()
-        form = DeliveredPostListForm(self.request.QUERY_PARAMS)
+        form = DeliveredPostListForm(self.request.query_params)
         if form.is_valid():
             kwargs = {}
             for field, query_key in [
@@ -186,12 +186,12 @@ def deliver(request, format=None):
     - delivery_errors: errors attempting delivery of the message (optional)
     """
 
-    serializer = DeliverActionSerializer(data=request.DATA)
+    serializer = DeliverActionSerializer(data=request.data)
     if not serializer.is_valid():
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     # Create the post.
-    data = serializer.object
+    data = serializer.validated_data
     post = Post(sender=request.user, subject=data["subject"], body=data["body"])
     # content_type is optional. Only set it if it was specified.
     # Otherwise, let the model choose a default.
@@ -229,10 +229,10 @@ def deliver(request, format=None):
 def sync(request, format=None):
     """Brings a box up to date with content from all of its subscriptions."""
 
-    serializer = SyncActionSerializer(data=request.DATA)
+    serializer = SyncActionSerializer(data=request.data)
     if not serializer.is_valid():
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    box = serializer.object["box"]
+    box = serializer.validated_data["box"]
     subs = Subscription.objects.filter(target=box)
     for sub in subs:
         source_box = sub.source
