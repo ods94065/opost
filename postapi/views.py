@@ -127,7 +127,6 @@ class DeliveredPostListForm(forms.Form):
 class DeliveredPostList(generics.ListCreateAPIView):
     """Operations on the collection of delivered posts."""
 
-    queryset = DeliveredPost.objects.all()
     serializer_class = DeliveredPostSerializer
 
     def get_queryset(self):
