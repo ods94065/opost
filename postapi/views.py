@@ -1,13 +1,19 @@
-import urlparse
 from django import forms
 from django.contrib.auth.models import User
-from rest_framework import generics, permissions, status
+from rest_framework import generics, status
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.parsers import JSONParser
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
-from postapi.models import *
-from postapi.serializers import *
+from postapi.models import Box, DeliveredPost, Post, Subscription
+from postapi.serializers import (
+    BoxSerializer,
+    DeliveredPostSerializer,
+    PostSerializer,
+    SubscriptionSerializer,
+    UserSerializer,
+    DeliverActionSerializer,
+    SyncActionSerializer,
+)
 
 
 @api_view(["GET"])
